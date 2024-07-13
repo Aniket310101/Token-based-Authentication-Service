@@ -48,6 +48,49 @@ export default class IdentityService {
     return token;
   }
 
+  async logoutUser(token: string): Promise<string> {
+    const userID = new JwtHelper().decode(token).id;
+    const message = await new AccessTokenRepository().expireAccessToken(
+      userID,
+      token,
+    );
+    return message;
+  }
+
+  async singleSignOut(token: string): Promise<string> {
+    const userID = new JwtHelper().decode(token).id;
+    const message = await new AccessTokenRepository().expireAllAccessToken(
+      userID,
+    );
+    return message;
+  }
+
+  async updateUserStatus(
+    userID: string,
+    isActive: boolean,
+  ): Promise<UserModel> {
+    const updatedUser = await new IdentityRepository().updateUserById(userID, {
+      isActive,
+    } as UserModel);
+    // Expire all access tokens if user is inactivated
+    if (!isActive)
+      await new AccessTokenRepository().expireAllAccessToken(userID);
+    return updatedUser;
+  }
+
+  async deleteUser(userID: string, token: string): Promise<string> {
+    const jwtID = new JwtHelper().decode(token).id;
+    if (userID !== jwtID)
+      throw new ErrorHandler(
+        ErrorCodeEnums.FORBIDDEN,
+        'You are not allowed to perform this operation!',
+      );
+    const message = await new IdentityRepository().deleteUser(userID);
+    // Expire all access tokens if user is inactivated
+    await new AccessTokenRepository().expireAllAccessToken(userID);
+    return message;
+  }
+
   private async getUserInfoByUsername(username: string): Promise<UserModel> {
     const userInfo: UserModel =
       await new IdentityRepository().getUserByUsername(username);

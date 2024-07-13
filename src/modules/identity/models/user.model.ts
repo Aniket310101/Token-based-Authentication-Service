@@ -3,6 +3,7 @@ export default class UserModel {
   username: string;
   password: string;
   email: string;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 
@@ -11,6 +12,7 @@ export default class UserModel {
     this.username = data.username;
     this.password = data.password;
     this.email = data.email;
+    this.isActive = data.isActive;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

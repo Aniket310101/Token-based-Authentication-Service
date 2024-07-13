@@ -26,6 +26,36 @@ export default class IdentityController {
     res.send({ token });
   }
 
+  async logout(req: Request, res: Response, next: NextFunction) {
+    const jwtHelper = new JwtHelper();
+    const token = jwtHelper.extractTokenFromHeader(req.headers.authorization);
+    const message = await new IdentityService().logoutUser(token);
+    res.send({ message });
+  }
+
+  async singleSignOut(req: Request, res: Response, next: NextFunction) {
+    const jwtHelper = new JwtHelper();
+    const token = jwtHelper.extractTokenFromHeader(req.headers.authorization);
+    const message = await new IdentityService().singleSignOut(token);
+    res.send({ message });
+  }
+
+  async updateUserStatus(req: Request, res: Response, next: NextFunction) {
+    const userID = req.params.id as string;
+    const isActive =
+      (req.query.active as string).toLowerCase() === 'false' ? false : true;
+    await new IdentityService().updateUserStatus(userID, isActive);
+    res.status(204).send();
+  }
+
+  async deleteUser(req: Request, res: Response, next: NextFunction) {
+    const jwtHelper = new JwtHelper();
+    const userID = req.params.id as string;
+    const token = jwtHelper.extractTokenFromHeader(req.headers.authorization);
+    await new IdentityService().deleteUser(userID, token);
+    res.status(204).send();
+  }
+
   async testMiddleware(req: Request, res: Response, next: NextFunction) {
     const jwtHelper = new JwtHelper();
     const token = jwtHelper.extractTokenFromHeader(req.headers.authorization);
